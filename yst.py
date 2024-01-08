@@ -38,7 +38,7 @@ timestamp = generate_timestamp()
 #for Mp4 ffmpeg required
 #output_filename = f"video/yst_{timestamp}.mp4"
 #fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-output_filename = f"C:\\Users\\folder\\video\\videoname_{timestamp}.avi"
+output_filename = f"C:\\Users\\folder\\video\\yst_{timestamp}.avi"
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
 
@@ -101,7 +101,7 @@ moments_of_interest_data = []
 
 tracker_data_csv_filename = f"C:\\Users\\folder\\data/yst_{timestamp}.csv"
 
-moments_of_interest_csv_filename = f"C:\\Users\\folder\\data/moments_of_interest_{timestamp}.csv"
+moments_of_interest_csv_filename = f"C:\\Users\\folder\\data/MOI{timestamp}.csv"
 
 while True:
     # read next frame from VideoCapture
