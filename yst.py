@@ -22,17 +22,25 @@ def which(x, values):
 
 
 # load video file
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 # Generate a timestamp string
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+def generate_timestamp():
+    return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+timestamp = generate_timestamp()
 
 # Specify the output filename with the timestamp
 # In the following format (might need to be changed depending on OS of computer):
 # f"/Users/yourname/nameoffolder/videoname_{timestamp}.mp4"
 # output_filename = f"/Users/Ingvild/screentracker/output_video_{timestamp}.mp4"
-output_filename = f"video/yst_{timestamp}.mp4"
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+#for Mp4 ffmpeg required
+#output_filename = f"video/yst_{timestamp}.mp4"
+#fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+output_filename = f"C:\\Users\\folder\\video\\videoname_{timestamp}.avi"
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+
 
 # Get the webcam stream dimensions
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -87,6 +95,13 @@ rect = np.array([[[0, 0],
 
 # noise reduction
 h_array = deque(maxlen=5)
+
+#MOI
+moments_of_interest_data = []
+
+tracker_data_csv_filename = f"C:\\Users\\folder\\data/yst_{timestamp}.csv"
+
+moments_of_interest_csv_filename = f"C:\\Users\\folder\\data/moments_of_interest_{timestamp}.csv"
 
 while True:
     # read next frame from VideoCapture
@@ -241,19 +256,36 @@ while True:
         # Display the resulting frame
         cv2.imshow('frame', frame)
 
-        # exit if q is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        # Check for key presses
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
             break
+        elif key == ord('m'):
+            # Record the moment of interest
+            current_time = datetime.datetime.now()
+            moments_of_interest_data.append([current_time.strftime("%Y-%m-%d %H:%M:%S"), "Moment of Interest"])
 
 # Save the data to a CSV file
 # again, update filepath to where you want to save the csv data
 # tracker_data_csv_filename = f"/Users/Ingvild/screentracker/tracker_data_{timestamp}.csv"
-tracker_data_csv_filename = f"data/yst_{timestamp}.csv"
-with open(tracker_data_csv_filename, mode='w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(["Timestamp", "Alignment Status", "Rotation Angle", "Upper Left Angle", "Upper Right Angle",
-                     "Lower Right Angle", "Lower Left Angle"])
-    writer.writerows(alignment_data)
+    current_time = datetime.datetime.now()
+    current_second = current_time.second
+
+    # Making sure information is only appended to the list once every second
+    if alignment_status != previous_alignment_status and (current_second != previous_second or previous_second is None):
+        alignment_data.append([current_time.strftime("%Y-%m-%d %H:%M:%S"), alignment_status, rotation_angle] + angles)
+        previous_second = current_second
+        
+    with open(tracker_data_csv_filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Timestamp", "Alignment Status", "Rotation Angle", "Upper Left Angle", "Upper Right Angle",
+                         "Lower Right Angle", "Lower Left Angle"])
+        writer.writerows(alignment_data)
+    
+    with open(moments_of_interest_csv_filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Timestamp", "Event"])
+        writer.writerows(moments_of_interest_data)
 
 # When everything is done, release the capture and video output
 if video_out is not None:
