@@ -26,7 +26,7 @@ cap = cv2.VideoCapture(1)
 
 # Generate a timestamp string
 def generate_timestamp():
-    return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    return datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
 
 timestamp = generate_timestamp()
 
