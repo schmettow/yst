@@ -47,7 +47,8 @@ frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
 # Create the VideoWriter object to save the video
-video_out = cv2.VideoWriter(output_filename, fourcc, 10, (frame_width, frame_height))
+actual_frame_rate = cap.get(cv2.CAP_PROP_FPS)
+video_out = cv2.VideoWriter(output_filename, fourcc, actual_frame_rate, (frame_width, frame_height))
 
 # Create a list to store the alignment data
 alignment_data = []
@@ -103,9 +104,31 @@ tracker_data_csv_filename = f"C:\\Users\\folder\\data/yst_{timestamp}.csv"
 
 moments_of_interest_csv_filename = f"C:\\Users\\folder\\data/MOI{timestamp}.csv"
 
+previous_time = datetime.datetime.now()
+
+# Initialize a variable for the homography matrix
+homography_matrix = None
+
 while True:
     # read next frame from VideoCapture
     ret, frame = cap.read()
+    if not ret:
+        print("Failed to capture frame")
+        continue  # Skip the current iteration if frame capture fails
+    
+    # Capture timestamp immediately after reading the frame
+    current_time = datetime.datetime.now()
+    
+     # Calculate elapsed time and FPS
+    elapsed_time = current_time - previous_time
+    fps = 1 / elapsed_time.total_seconds()
+
+    # Print or log the FPS
+    print(f"FPS: {fps:.2f}")
+
+    # Update the previous time for the next iteration
+    previous_time = current_time
+    
     if frame is not None:
         # convert frame to gray scale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -144,15 +167,22 @@ while True:
                     try:
                         h, s = cv2.findHomography(these_ref_corners, these_res_corners, cv2.RANSAC, 5.0)
 
+                        # Update the homography matrix for real-time adjustment
+                        homography_matrix = np.mean(h_array, axis=0)
+
                     # in case the program cannot calculate the homography matrix
                     except cv2.error as e:
-                        print("Homography calculation failed:", str(e))
-                        alignment_status = "Homography calculation failed"
+                       print("Homography calculation failed:", str(e))
+                       alignment_status = "Homography calculation failed"
+                       homography_matrix = None
 
                     else:
                         # for smoothing
                         h_array.append(h)
                         this_h = np.mean(h_array, axis=0)
+                        
+                        # Update the homography matrix for real-time adjustment
+                        homography_matrix = np.mean(h_array, axis=0)
 
                         # transform the rectangle using the homography matrix
                         newRect = cv2.perspectiveTransform(rect, this_h, (gray.shape[1], gray.shape[0]))
