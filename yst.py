@@ -83,7 +83,23 @@ morph_kernel_size = (7, 7)  # Adjust the kernel size for morphological operation
 # upload reference image to a folder and specify the filepath like this:
 # "/Users/yourname/nameoffolder (if image is in a subfolder)/imagename.jpeg" (or .jpg, please check!)
 # refImage = cv2.cvtColor(cv2.imread("/Users/Ingvild/ipad6.jpeg"), cv2.COLOR_BGR2GRAY)
-refImage = cv2.cvtColor(cv2.imread("ref_image/ipad6.jpg"), cv2.COLOR_BGR2GRAY)
+#refImage = cv2.cvtColor(cv2.imread("ref_image/ipad6.jpg"), cv2.COLOR_BGR2GRAY)
+# Specify the possible reference image filenames
+possible_ref_image_filenames = ["image.jpeg", "image1.jpeg"]
+
+# Load reference image
+refImage = None
+for ref_image_filename in possible_ref_image_filenames:
+    try:
+        refImage = cv2.cvtColor(cv2.imread(r"C\\Users\\folder/" + ref_image_filename), cv2.COLOR_BGR2GRAY)
+        break  # If successful, break out of the loop
+    except Exception as e:
+        print(f"Error loading reference image '{ref_image_filename}': {e}")
+
+# Check if a valid reference image is loaded
+if refImage is None:
+    print("Failed to load any reference image. Exiting.")
+    sys.exit()
 
 # detect markers in reference image
 #refCorners, refIds, refRejected = cv2.aruco.detectMarkers(refImage, aruco_dict, parameters=parameters)
